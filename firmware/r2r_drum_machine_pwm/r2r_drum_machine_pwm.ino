@@ -53,7 +53,7 @@ volatile boolean synced = false;
 
 void setup() {
   pinMode(2,INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(2), syncPulse, RISING);
+  //  attachInterrupt(digitalPinToInterrupt(2), syncPulse, RISING);
   
   pinMode(3,OUTPUT);
 
@@ -68,13 +68,9 @@ void setup() {
   digitalWrite(13, HIGH);
 }
 
-void syncPulse() {
-  synced = true;
-}
 
 int takte = 16;
 int sample_rate = -1;
-int sample_rate_pot = -1;
 long micros_start_beat = 0;
 
 void loop() {
@@ -86,11 +82,8 @@ void loop() {
     digitalWrite(13, 3 - (j % 4));
     
     // get pot value and set sampling rate for sample playback
-    int sample_rate_tmp = (analogRead(0) >> 3) + 2;
-    if (sample_rate_pot != sample_rate_tmp) {
-      sample_rate = sample_rate_tmp;
-      sample_rate_pot = sample_rate_tmp;
-    }
+    int sample_rate = (analogRead(0) >> 3) + 2;
+
     int crush = 1;//(analogRead(1) >> 5) + 1;
   
     takte = 16;//(analogRead(1) >> 6) + 1; 
@@ -107,7 +100,6 @@ void loop() {
     }
     
     // sample_playback
-    micros_start_beat = micros();
     for(int i = 0; i < 5000; i+= crush ) {
       // get sample data 
       byte data_1 = sound_pattern[j + 0] * pgm_read_byte_near(sound + i + 0); 
@@ -118,11 +110,7 @@ void loop() {
       //PORTD = data_1 + data_2 + data_3 + data_4; 
       OCR2B = data_1 + data_2 + data_3 + data_4;
       delayMicroseconds(sample_rate);
-      if (synced) {
-        synced = false;
-        sample_rate = (micros() - micros_start_beat) / i;
-        break;
-      }
+      
     }
   }
 }
